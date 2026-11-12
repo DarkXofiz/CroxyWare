@@ -1,0 +1,39 @@
+name: build
+on: [push, workflow_dispatch]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 25
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 9.8.2
+      - name: Wrapper
+        run: |
+          if [ ! -f gradle/wrapper/gradle-wrapper.jar ]; then gradle wrapper --gradle-version 9.8.2; fi
+          chmod +x gradlew
+      - name: Build
+        run: |
+          set -o pipefail
+          ./gradlew build --no-daemon --stacktrace 2>&1 | tee build-full.log
+      - name: Log ozeti
+        if: always()
+        run: |
+          mkdir -p logs
+          cp build-full.log logs/ 2>/dev/null || true
+          grep -E "error:|FAILED|BUILD |What went wrong|Could not" build-full.log | head -500 > logs/errors-ilk500.txt || true
+          ls -la build/libs > logs/jar-listesi.txt 2>&1 || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: CroxyWare-LOGS
+          path: logs/
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: CroxyWare
+          path: build/libs/*.jar
