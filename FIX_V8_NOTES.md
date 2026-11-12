@@ -6,3 +6,4 @@ Only gameplay/network/entity/player hooks stay. The game then loads like vanilla
 - Turn safe mode off for testing: JVM arg -Dcroxyware.safe=false
 - Force mobile / desktop: -Dcroxyware.mobile=true / -Dcroxyware.desktop=true
 Desktop is unchanged. Logs: croxyware_render.log
+- v8b: also detects DroidBridge launcher (-Ddroidbridge.path.minecraft / glfwstub.* props, krypton).

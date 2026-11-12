@@ -15,13 +15,13 @@ public final class MobileCompat {
 
    private static boolean detect() {
       try {
-         if (Boolean.getBoolean("croxyware.mobile")) {
+         if (Boolean.getBoolean("croxyware.mobile") || System.getProperty("droidbridge.path.minecraft") != null || System.getProperty("glfwstub.windowWidth") != null) {
             return true;
          }
          if (Boolean.getBoolean("croxyware.desktop")) {
             return false;
          }
-         for (String key : new String[]{"ANDROID_ROOT", "ANDROID_DATA", "POJAV_RENDERER", "POJAV_NATIVEDIR", "POJAV_ENVIRON", "ZALITH_RENDERER", "FCL_RENDERER"}) {
+         for (String key : new String[]{"ANDROID_ROOT", "ANDROID_DATA", "POJAV_RENDERER", "POJAV_NATIVEDIR", "POJAV_ENVIRON", "ZALITH_RENDERER", "FCL_RENDERER", "DROIDBRIDGE_RENDERER"}) {
             String v = System.getenv(key);
             if (v != null && !v.isEmpty()) {
                return true;
@@ -30,12 +30,12 @@ public final class MobileCompat {
          for (String key : new String[]{"os.name", "java.vendor", "java.vm.vendor", "java.vm.name", "java.home", "user.home"}) {
             String v = System.getProperty(key, "");
             String l = v.toLowerCase(Locale.ROOT);
-            if (l.contains("android") || l.contains("pojav") || l.contains("zalith") || l.contains("com.movtery")) {
+            if (l.contains("android") || l.contains("pojav") || l.contains("zalith") || l.contains("com.movtery") || l.contains("droidbridge") || l.contains("cheesakeyk") || l.contains("fcl") && l.contains("plugin")) {
                return true;
             }
          }
          String renderer = System.getProperty("org.lwjgl.opengl.libname", "").toLowerCase(Locale.ROOT);
-         return renderer.contains("gl4es") || renderer.contains("mobileglues") || renderer.contains("angle") || renderer.contains("holygl4es");
+         return renderer.contains("gl4es") || renderer.contains("mobileglues") || renderer.contains("angle") || renderer.contains("holygl4es") || renderer.contains("krypton") || renderer.contains("ng_gl4es");
       } catch (Throwable ignored) {
          return false;
       }
