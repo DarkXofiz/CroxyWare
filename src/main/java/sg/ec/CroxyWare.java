@@ -27,9 +27,14 @@ public class CroxyWare implements MinecraftAccess, ModInitializer {
    @Override
    public void onInitialize() {
       try {
-         String line = "[CroxyWare] mobile=" + MobileCompat.isMobile() + " encryptedIndexEntries=" + EncryptedAssetArchive.method10921().size() + "\n";
+         String line = "[CroxyWare] mobile=" + MobileCompat.isMobile() + " level=" + MobileCompat.level() + " encryptedIndexEntries=" + (MobileCompat.isInert() ? -1 : EncryptedAssetArchive.method10921().size()) + "\n";
          java.nio.file.Files.writeString(java.nio.file.Path.of("croxyware_render.log"), line, java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.APPEND);
       } catch (Throwable ignored) {
+      }
+
+      if (MobileCompat.isInert()) {
+         System.out.println("[CroxyWare] level 0: inert, nothing initialised");
+         return;
       }
 
       BaritoneAPI.initBaritone();
@@ -69,6 +74,11 @@ public class CroxyWare implements MinecraftAccess, ModInitializer {
       }
 
       System.out.println("[CroxyWare] game started mobile=" + MobileCompat.isMobile() + " safeMode=" + MobileCompat.isSafeMode() + " skippedMixins=" + SAFE_SKIPPED.get());
+      if (MobileCompat.skipClientInit()) {
+         System.out.println("[CroxyWare] client init skipped (level " + MobileCompat.level() + ")");
+         return;
+      }
+
       try {
          new ClientManagers();
          if (!MobileCompat.isSafeMode()) {
@@ -93,6 +103,10 @@ public class CroxyWare implements MinecraftAccess, ModInitializer {
       }
 
       public void onLoad(String var1) {
+         if (MobileCompat.isInert()) {
+            return;
+         }
+
          ScriptMixinManager.method08302();
       }
 
@@ -107,6 +121,10 @@ public class CroxyWare implements MinecraftAccess, ModInitializer {
       }
 
       public List<String> getMixins() {
+         if (MobileCompat.isInert()) {
+            return java.util.Collections.emptyList();
+         }
+
          return ScriptMixinManager.method08297();
       }
 
@@ -136,6 +154,9 @@ public class CroxyWare implements MinecraftAccess, ModInitializer {
 
       public boolean shouldApplyMixin(String var1, String var2) {
          // Vulkan backend mixins crash / mis-hook on mobile launchers (Zalith/Pojav use GL translation layers).
+         if (MobileCompat.isInert()) {
+            return false;
+         }
          if (MobileCompat.isMobile() && var2 != null && var2.contains("Vulkan")) {
             return false;
          }

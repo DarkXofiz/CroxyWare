@@ -67,8 +67,55 @@ public final class MobileCompat {
     * Mobile safe mode: on Zalith/Pojav every mixin that touches rendering, resource loading or GUI is skipped, so the
     * game starts exactly like vanilla (the mod only keeps gameplay/network hooks). Disable with -Dcroxyware.safe=false.
     */
+   private static int levelCache = -1;
+
+   /**
+    * Staged start-up level, to find out which part of the mod breaks a launcher:
+    * 0 = inert (no mixins, no init) 1 = safe mixins only 2 = safe mixins + client init (default on mobile) 3 = everything.
+    * Set it with -Dcroxyware.level=N, a file croxyware_level.txt in the game folder, or by naming the jar croxyware-L0.jar ... -L3.jar.
+    */
+   public static int level() {
+      if (levelCache >= 0) {
+         return levelCache;
+      }
+
+      int result = MOBILE ? 2 : 3;
+      try {
+         String prop = System.getProperty("croxyware.level");
+         if (prop != null && prop.trim().matches("[0-3]")) {
+            result = Integer.parseInt(prop.trim());
+         } else {
+            java.nio.file.Path f = java.nio.file.Path.of("croxyware_level.txt");
+            String txt = java.nio.file.Files.isReadable(f) ? java.nio.file.Files.readString(f).trim() : "";
+            if (txt.matches("[0-3]")) {
+               result = Integer.parseInt(txt);
+            } else {
+               java.security.CodeSource cs = MobileCompat.class.getProtectionDomain().getCodeSource();
+               String loc = cs != null && cs.getLocation() != null ? cs.getLocation().toString() : "";
+               java.util.regex.Matcher m = java.util.regex.Pattern.compile("-L([0-3])(?:[^0-9]|$)").matcher(loc);
+               if (m.find()) {
+                  result = Integer.parseInt(m.group(1));
+               }
+            }
+         }
+      } catch (Throwable ignored) {
+      }
+
+      levelCache = result;
+      return result;
+   }
+
+   public static boolean isInert() {
+      return level() == 0;
+   }
+
    public static boolean isSafeMode() {
-      return MOBILE && !"false".equalsIgnoreCase(System.getProperty("croxyware.safe", "true"));
+      return level() <= 2 && (MOBILE || level() < 2) && !"false".equalsIgnoreCase(System.getProperty("croxyware.safe", "true"));
+   }
+
+   /** True when the client manager / GUI initialisation must not run (levels 0 and 1). */
+   public static boolean skipClientInit() {
+      return level() <= 1;
    }
 
    public static boolean isBlockedInSafeMode(String mixinClassName) {
