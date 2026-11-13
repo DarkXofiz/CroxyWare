@@ -68,6 +68,7 @@ public class CroxyWare implements MinecraftAccess, ModInitializer {
          ClientEnvironment.field07579 = ClientEnvironment.field07579 + "Alpha";
       }
 
+      System.out.println("[CroxyWare] game started mobile=" + MobileCompat.isMobile() + " safeMode=" + MobileCompat.isSafeMode() + " skippedMixins=" + SAFE_SKIPPED.get());
       try {
          new ClientManagers();
          if (!MobileCompat.isSafeMode()) {
@@ -115,10 +116,13 @@ public class CroxyWare implements MinecraftAccess, ModInitializer {
    }
 
    // $VF: Compiled from s
+   private static final java.util.concurrent.atomic.AtomicInteger SAFE_SKIPPED = new java.util.concurrent.atomic.AtomicInteger();
+
    public static final class Nested22 implements IMixinConfigPlugin {
       private final IMixinConfigPlugin field01756 = new ViaBotGuardMixinPlugin();
 
       public void onLoad(String var1) {
+         System.out.println("[CroxyWare] mixin plugin onLoad config=" + var1 + " mobile=" + MobileCompat.isMobile() + " safeMode=" + MobileCompat.isSafeMode());
          this.field01756.onLoad(var1);
       }
 
@@ -136,6 +140,7 @@ public class CroxyWare implements MinecraftAccess, ModInitializer {
             return false;
          }
          if (MobileCompat.isSafeMode() && MobileCompat.isBlockedInSafeMode(var2)) {
+            SAFE_SKIPPED.incrementAndGet();
             return false;
          }
          return this.field01756.shouldApplyMixin(var1, var2);
